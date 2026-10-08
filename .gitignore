@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# Migrations (якщо не хочеш комітити)
+# */migrations/*
+# !*/migrations/__init__.py
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+docker_data/
+postgres_data/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# mypy
+.mypy_cache/
+
+# Ruff
+.ruff_cache/
+
+# Coverage
+coverage.xml
