@@ -137,3 +137,7 @@ apps/locations/   locations, popularity querysets, view counter, list cache, exp
 apps/reviews/     reviews, votes, new-review notifications
 apps/common/      timestamp/soft-delete base models, permissions, test helpers
 ```
+
+## License
+
+[MIT](LICENSE)
