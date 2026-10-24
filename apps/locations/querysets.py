@@ -1,7 +1,15 @@
 from datetime import timedelta
 
 from django.db.models import (
-    Avg, Count, ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery, Value,
+    Avg,
+    Count,
+    ExpressionWrapper,
+    F,
+    FloatField,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    Value,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -32,7 +40,9 @@ class LocationQuerySet(SoftDeleteQuerySet):
             views_7d=Coalesce(Subquery(views_sq, output_field=IntegerField()), Value(0)),
         ).annotate(
             popularity=ExpressionWrapper(
-                F("avg_rating") * W_RATING + F("reviews_count") * W_REVIEWS + F("views_7d") * W_VIEWS,
+                F("avg_rating") * W_RATING
+                + F("reviews_count") * W_REVIEWS
+                + F("views_7d") * W_VIEWS,
                 output_field=FloatField(),
             )
         )

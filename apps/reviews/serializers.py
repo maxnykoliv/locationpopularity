@@ -20,8 +20,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = (
-            "id", "location", "author", "author_id", "rating", "comment",
-            "likes", "dislikes", "my_vote", "created_at", "updated_at",
+            "id",
+            "location",
+            "author",
+            "author_id",
+            "rating",
+            "comment",
+            "likes",
+            "dislikes",
+            "my_vote",
+            "created_at",
+            "updated_at",
         )
         read_only_fields = ("created_at", "updated_at")
         validators = []
@@ -31,7 +40,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             user = self.context["request"].user
             if Review.objects.filter(location=attrs["location"], author=user).exists():
                 raise serializers.ValidationError(
-                    {"detail": "Ви вже залишили відгук до цієї локації."}
+                    {"detail": "You have already reviewed this location."}
                 )
         return attrs
 
@@ -45,8 +54,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             instance = super().create(validated_data)
         except IntegrityError:
             raise serializers.ValidationError(
-                {"detail": "Ви вже залишили відгук до цієї локації."}
-            )
+                {"detail": "You have already reviewed this location."}
+            ) from None
         return self._fresh(instance)
 
     def update(self, instance, validated_data):

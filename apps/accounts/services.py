@@ -14,13 +14,13 @@ def send_password_reset_email(user) -> None:
     token = default_token_generator.make_token(user)
     link = settings.PASSWORD_RESET_URL_TEMPLATE.format(uid=uid, token=token)
     send_mail(
-        subject="Скидання пароля",
+        subject="Password reset",
         message=(
-            f"Вітаємо, {user.get_username()}!\n\n"
-            f"Щоб скинути пароль, перейдіть за посиланням:\n{link}\n\n"
-            f"Або надішліть POST /api/auth/password-reset/confirm/ з полями:\n"
-            f"uid: {uid}\ntoken: {token}\nnew_password: <новий пароль>\n\n"
-            "Якщо ви не робили цей запит, просто проігноруйте лист."
+            f"Hi {user.get_username()},\n\n"
+            f"To reset your password, open this link:\n{link}\n\n"
+            "Or send POST /api/auth/password-reset/confirm/ with:\n"
+            f"uid: {uid}\ntoken: {token}\nnew_password: <your new password>\n\n"
+            "If you did not request this, you can ignore this email."
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],

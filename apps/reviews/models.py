@@ -20,7 +20,9 @@ class Review(TimeStampedModel):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint(fields=["location", "author"], name="one_review_per_user_location"),
+            models.UniqueConstraint(
+                fields=["location", "author"], name="one_review_per_user_location"
+            ),
             models.CheckConstraint(
                 condition=models.Q(rating__gte=1, rating__lte=5), name="review_rating_1_5"
             ),
@@ -45,3 +47,6 @@ class ReviewVote(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["review", "user"], name="one_vote_per_user_review")
         ]
+
+    def __str__(self):
+        return f"{self.user} {'+1' if self.value == self.LIKE else '-1'} on review {self.review_id}"

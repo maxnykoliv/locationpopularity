@@ -9,7 +9,7 @@ LIST_CACHE_TTL = 60 * 5
 
 
 def _get_version() -> int:
-    cache.add(LIST_VERSION_KEY, 1, timeout=None)  # створить, лише якщо ключа ще немає
+    cache.add(LIST_VERSION_KEY, 1, timeout=None)  # no-op if the key already exists
     return cache.get(LIST_VERSION_KEY, 1)
 
 

@@ -16,10 +16,22 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = (
-            "id", "title", "description", "category", "category_name", "address",
-            "latitude", "longitude", "author", "author_id",
-            "avg_rating", "reviews_count", "views_7d", "popularity",
-            "created_at", "updated_at",
+            "id",
+            "title",
+            "description",
+            "category",
+            "category_name",
+            "address",
+            "latitude",
+            "longitude",
+            "author",
+            "author_id",
+            "avg_rating",
+            "reviews_count",
+            "views_7d",
+            "popularity",
+            "created_at",
+            "updated_at",
         )
         read_only_fields = ("created_at", "updated_at")
         extra_kwargs = {
@@ -29,8 +41,12 @@ class LocationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         instance = super().create(validated_data)
-        return Location.objects.with_stats().select_related("category", "author").get(pk=instance.pk)
+        return (
+            Location.objects.with_stats().select_related("category", "author").get(pk=instance.pk)
+        )
 
     def update(self, instance, validated_data):
         instance = super().update(instance, validated_data)
-        return Location.objects.with_stats().select_related("category", "author").get(pk=instance.pk)
+        return (
+            Location.objects.with_stats().select_related("category", "author").get(pk=instance.pk)
+        )

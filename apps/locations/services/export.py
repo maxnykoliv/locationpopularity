@@ -2,10 +2,20 @@ import pandas as pd
 from django.http import HttpResponse
 
 EXPORT_FIELDS = [
-    "id", "title", "description", "category__name", "address",
-    "latitude", "longitude", "author__username",
-    "avg_rating", "reviews_count", "views_7d", "popularity",
-    "created_at", "updated_at",
+    "id",
+    "title",
+    "description",
+    "category__name",
+    "address",
+    "latitude",
+    "longitude",
+    "author__username",
+    "avg_rating",
+    "reviews_count",
+    "views_7d",
+    "popularity",
+    "created_at",
+    "updated_at",
 ]
 
 COLUMN_NAMES = {

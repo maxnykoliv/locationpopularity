@@ -6,7 +6,8 @@ from .views import ReviewViewSet
 router = DefaultRouter()
 router.register("reviews", ReviewViewSet, basename="review")
 
-urlpatterns = router.urls + [
+urlpatterns = [
+    *router.urls,
     path(
         "locations/<int:location_id>/reviews/",
         ReviewViewSet.as_view({"get": "list", "post": "create"}),
