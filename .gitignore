@@ -16,10 +16,6 @@ db.sqlite3
 media/
 staticfiles/
 
-# Migrations (якщо не хочеш комітити)
-# */migrations/*
-# !*/migrations/__init__.py
-
 # IDE
 .idea/
 .vscode/
