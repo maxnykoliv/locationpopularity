@@ -19,6 +19,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return super().destroy(request, *args, **kwargs)
         except ProtectedError:
             return Response(
-                {"detail": "Не можна видалити категорію, у якій є локації."},
+                {"detail": "Cannot delete a category that still has locations."},
                 status=status.HTTP_409_CONFLICT,
             )

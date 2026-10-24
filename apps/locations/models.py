@@ -20,11 +20,13 @@ class Location(TimeStampedModel, SoftDeleteModel):
     )
     address = models.CharField(max_length=255)
     latitude = models.DecimalField(
-        max_digits=9, decimal_places=6,
+        max_digits=9,
+        decimal_places=6,
         validators=[MinValueValidator(-90), MaxValueValidator(90)],
     )
     longitude = models.DecimalField(
-        max_digits=9, decimal_places=6,
+        max_digits=9,
+        decimal_places=6,
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
     author = models.ForeignKey(
@@ -42,9 +44,7 @@ class Location(TimeStampedModel, SoftDeleteModel):
 
 
 class LocationView(models.Model):
-    location = models.ForeignKey(
-        "Location", on_delete=models.CASCADE, related_name="views"
-    )
+    location = models.ForeignKey("Location", on_delete=models.CASCADE, related_name="views")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -55,6 +55,9 @@ class LocationView(models.Model):
             models.Index(fields=["location", "viewed_at"], name="locview_loc_viewed_idx"),
             models.Index(fields=["viewed_at"], name="locview_viewed_idx"),
         ]
+
+    def __str__(self):
+        return f"{self.location} @ {self.viewed_at:%Y-%m-%d %H:%M}"
 
 
 class Subscription(models.Model):
@@ -68,3 +71,6 @@ class Subscription(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["user", "location"], name="unique_subscription")
         ]
+
+    def __str__(self):
+        return f"{self.user} -> {self.location}"

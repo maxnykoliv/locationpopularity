@@ -2,16 +2,19 @@ from django.contrib.auth import login, logout
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics, serializers
 
 from . import services
 from .serializers import (
-    LoginSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer,
-    RegisterSerializer, UserSerializer,
+    LoginSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    RegisterSerializer,
+    UserSerializer,
 )
 
 
@@ -19,8 +22,12 @@ from .serializers import (
 class CsrfView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Set the CSRF cookie",
+        responses=inline_serializer("CsrfResponse", {"detail": serializers.CharField()}),
+    )
     def get(self, request):
-        return Response({"detail": "CSRF cookie встановлено."})
+        return Response({"detail": "CSRF cookie set."})
 
 
 class RegisterView(generics.GenericAPIView):
@@ -50,6 +57,7 @@ class LoginView(generics.GenericAPIView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(summary="Log out", request=None, responses={204: OpenApiResponse()})
     def post(self, request):
         logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -58,6 +66,7 @@ class LogoutView(APIView):
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(summary="Current user", responses=UserSerializer)
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
@@ -70,7 +79,9 @@ class PasswordResetRequestView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         services.request_password_reset(serializer.validated_data["email"])
-        return Response({"detail": "Якщо такий email існує, ми надіслали лист."})
+        return Response(
+            {"detail": "If an account with this email exists, a reset link has been sent."}
+        )
 
 
 class PasswordResetConfirmView(generics.GenericAPIView):
@@ -83,7 +94,7 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         try:
             user = services.confirm_password_reset(**serializer.validated_data)
         except DjangoValidationError as exc:
-            raise serializers.ValidationError({"new_password": list(exc.messages)})
+            raise serializers.ValidationError({"new_password": list(exc.messages)}) from exc
         if user is None:
-            raise serializers.ValidationError({"detail": "Недійсне або прострочене посилання."})
-        return Response({"detail": "Пароль змінено."})
+            raise serializers.ValidationError({"detail": "Invalid or expired reset link."})
+        return Response({"detail": "Password has been reset."})

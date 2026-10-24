@@ -3,6 +3,7 @@ from django.contrib import admin, messages
 from apps.reviews.models import Review
 
 from .models import Location, LocationView, Subscription
+from .services.cache import bump_list_version
 
 
 class ReviewInline(admin.TabularInline):
@@ -19,8 +20,15 @@ class ReviewInline(admin.TabularInline):
 @admin.register(Location)
 class LocationAdmin(admin.ModelAdmin):
     list_display = (
-        "title", "category", "author", "rating", "reviews_total",
-        "views_week", "popularity_score", "is_deleted", "created_at",
+        "title",
+        "category",
+        "author",
+        "rating",
+        "reviews_total",
+        "views_week",
+        "popularity_score",
+        "is_deleted",
+        "created_at",
     )
     list_filter = ("is_deleted", "category", "created_at")
     search_fields = ("title", "description", "address", "author__username")
@@ -38,26 +46,33 @@ class LocationAdmin(admin.ModelAdmin):
         initial.setdefault("author", request.user.pk)
         return initial
 
-    @admin.display(description="Рейтинг", ordering="avg_rating")
+    @admin.display(description="Rating", ordering="avg_rating")
     def rating(self, obj):
         return round(obj.avg_rating, 2)
 
-    @admin.display(description="Відгуків", ordering="reviews_count")
+    @admin.display(description="Reviews", ordering="reviews_count")
     def reviews_total(self, obj):
         return obj.reviews_count
 
-    @admin.display(description="Перегляди (7 дн.)", ordering="views_7d")
+    @admin.display(description="Views (7d)", ordering="views_7d")
     def views_week(self, obj):
         return obj.views_7d
 
-    @admin.display(description="Популярність", ordering="popularity")
+    @admin.display(description="Popularity", ordering="popularity")
     def popularity_score(self, obj):
         return round(obj.popularity, 1)
 
-    @admin.action(description="Відновити вибрані локації")
+    def delete_queryset(self, request, queryset):
+        # Bulk delete is a soft delete via QuerySet.update(), which skips the
+        # post_save signal, so the public list cache has to be bumped here.
+        queryset.delete()
+        bump_list_version()
+
+    @admin.action(description="Restore selected locations")
     def restore_locations(self, request, queryset):
         updated = queryset.filter(is_deleted=True).update(is_deleted=False, deleted_at=None)
-        self.message_user(request, f"Відновлено: {updated}", messages.SUCCESS)
+        bump_list_version()
+        self.message_user(request, f"Restored {updated} location(s)", messages.SUCCESS)
 
 
 @admin.register(LocationView)

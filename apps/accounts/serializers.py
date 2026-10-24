@@ -23,11 +23,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_email(self, value):
         value = value.lower()
         if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Користувач з таким email вже існує.")
+            raise serializers.ValidationError("A user with this email already exists.")
         return value
 
     def validate(self, attrs):
-        # Перевірка складності пароля з урахуванням username/email
+        # Run password validators against a transient user so the similarity
+        # check can compare with username and email.
         candidate = User(username=attrs.get("username"), email=attrs.get("email"))
         validate_password(attrs["password"], user=candidate)
         return attrs
@@ -47,7 +48,7 @@ class LoginSerializer(serializers.Serializer):
             password=attrs["password"],
         )
         if user is None:
-            raise serializers.ValidationError("Невірний логін або пароль.")
+            raise serializers.ValidationError("Invalid username or password.")
         attrs["user"] = user
         return attrs
 
