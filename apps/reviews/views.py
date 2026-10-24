@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -10,14 +11,10 @@ from apps.locations.models import Location
 from .models import Review, ReviewVote
 from .querysets import annotate_votes
 from .serializers import ReviewSerializer, VoteSerializer
-
-from django.db import transaction
 from .services import notify_new_review
-from rest_framework.permissions import IsAuthenticated
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
     filterset_fields = {
@@ -40,6 +37,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
         data = request.data
         location_id = self.kwargs.get("location_id")
         if location_id is not None:
+            # Same 404 as GET on this route, rather than a 400 "invalid pk".
+            get_object_or_404(Location.objects.all(), pk=location_id)
             data = data.copy()
             data["location"] = location_id
         serializer = self.get_serializer(data=data)
@@ -59,14 +58,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
             deleted, _ = ReviewVote.objects.filter(review=review, user=request.user).delete()
             if not deleted:
                 return Response(
-                    {"detail": "Ви ще не голосували за цей відгук."},
+                    {"detail": "You have not voted on this review."},
                     status=status.HTTP_404_NOT_FOUND,
                 )
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if review.author_id == request.user.id:
             return Response(
-                {"detail": "Не можна голосувати за власний відгук."},
+                {"detail": "You cannot vote on your own review."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -77,7 +76,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         existing = ReviewVote.objects.filter(review=review, user=request.user).first()
         if existing and existing.value == value:
             return Response(
-                {"detail": "Ви вже проголосували так само."},
+                {"detail": "You have already cast this vote."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

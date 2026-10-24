@@ -1,5 +1,7 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.core.cache import cache
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from apps.common.permissions import IsOwnerOrAdmin
@@ -7,16 +9,10 @@ from apps.common.permissions import IsOwnerOrAdmin
 from .filters import LocationFilter
 from .models import Location, Subscription
 from .serializers import LocationSerializer
+from .services.cache import LIST_CACHE_TTL, list_cache_key
+from .services.export import SUPPORTED_FORMATS, export_response
 from .services.views_counter import register_view
 
-from django.core.cache import cache
-from .services.cache import LIST_CACHE_TTL, bump_list_version, list_cache_key
-
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-
-from .services.export import SUPPORTED_FORMATS, export_response
 
 class LocationViewSet(viewsets.ModelViewSet):
     serializer_class = LocationSerializer
@@ -51,16 +47,12 @@ class LocationViewSet(viewsets.ModelViewSet):
         response["X-Cache"] = "MISS"
         return response
 
-    def perform_destroy(self, instance):
-        instance.delete()
-        bump_list_version()
-
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request):
         file_format = request.query_params.get("file_format", "json").lower()
         if file_format not in SUPPORTED_FORMATS:
             return Response(
-                {"file_format": f"Підтримуються: {', '.join(SUPPORTED_FORMATS)}."},
+                {"file_format": f"Supported formats: {', '.join(SUPPORTED_FORMATS)}."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         queryset = self.filter_queryset(self.get_queryset())
